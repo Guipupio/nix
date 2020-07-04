@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <h1>Escreve Um Teste AI</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <span></span>
+        </div>
+        <div class="col-md-4">
+
+            <label for="texto">FALA AI MANO:</label><br><br>
+            <input id="texto" name="texto"><br><br>
+            <button onclick="envia_texto('texto')">Identificar Idioma</button>
+
+        </div>
+        <div class="col-md-4">
+            <span></span>
+        </div>
+
+    </div>
+
+</body>
+
+<script>
+
+    var script = document.createElement('script');
+    script.src = 'https://code.jquery.com/jquery-3.4.1.min.js';
+    script.type = 'text/javascript';
+    document.getElementsByTagName('head')[0].appendChild(script);
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    function envia_texto(texto_id) {
+        $.ajax({
+            url: "{% url 'trata_texto' %}",
+            method: 'POST',
+            async: false,
+            data: { csrfmiddlewaretoken: getCookie('csrftoken'), texto: $('#' + texto_id).val() },
+            success: function (result) {
+                alert(result.idioma)
+
+            },
+            error: function (result, status, error) {
+                alert("Houve um problema: " + String(error))
+            },
+
+        });
+    }
+
+</script>
+
+</html>

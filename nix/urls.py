@@ -16,6 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from nix.views import home, identifica_texto
+app_name = 'home'
+
 urlpatterns = [
+    path('', home, name='home'),
+    path('trata_texto', identifica_texto, name='trata_texto'),
     path('admin/', admin.site.urls),
+    
 ]
