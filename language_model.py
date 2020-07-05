@@ -12,7 +12,7 @@ DICT_FEATURES = {}
 map_language = {
     'french': 0,
     'english': 1,
-    'italian': 2
+    'italian': 2,
 }
 
 def feature(func):
@@ -31,6 +31,12 @@ def get_consoante_relativa(texto):
 @feature
 def get_acento_relativo(texto):
     num = len(list(filter(lambda char: char in ACENTOS, texto)))
+    return num / len(texto)
+
+@feature
+def get_palavras_final_vogal(texto):
+    texto = list(filter(lambda x: x != '', texto.split(' ')))
+    num = len(list(filter(lambda palavra: palavra[-1] in VOGAIS, texto)))
     return num / len(texto)
 
 
@@ -53,7 +59,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.model_selection import train_test_split
 
 if __name__ == "__main__":
-    LABELS = ['Francês','Inglês','Italiano']
+    LABELS = ['Francês', 'Inglês', 'Italiano']
     INPUT = [func_name[4:] for func_name, _ in DICT_FEATURES.items()]
 
     # obtem DF
