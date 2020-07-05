@@ -48,7 +48,7 @@
     function envia_texto(texto_id) {
         $.ajax({
             url: "{% url 'trata_texto' %}",
-            method: 'POST',
+            method: 'GET',
             async: false,
             data: { csrfmiddlewaretoken: getCookie('csrftoken'), texto: $('#' + texto_id).val() },
             success: function (result) {

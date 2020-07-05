@@ -1,9 +1,11 @@
 import pandas as pd
-
+import joblib
 from nix.settings import BASE_DIR
+
 
 VOGAIS = [u'ë', u'û', u'À', u'È', u'O', u'Ô', u'à', u'è', u'ì', u'o', u'ô', u'ü', u'É', u'é', u'ù', u'A', u'Â', u'E', u'Æ', u'I', u'Ê', u'U', u'Y', u'a', u'â', u'e', u'æ', u'i', u'ê', u'î', u'ò', u'u', u'ö', u'y', u'ï']
 CONSOANTES = [u'D', u'p', u't', u'x', u'Ç', u'H', u'L', u'P', u'T', u'X', u'd', u'ç', u'h', u'l', u'C', u'G', u'K', u'S', u'W', u'c', u'g', u'k', u's', u'w', u'B', u'F', u'J', u'N', u'R', u'V', u'Z', u'b', u'f', u'j', u'n', u'ñ', u'r', u'v', u'z', u'M', u'Q', u'm', u'q']
+ACENTOS = [u'ë', u'û', u'À', u'È', u'O', u'Ô', u'à', u'è', u'ì',  u'ô', u'ü', u'É', u'é', u'ù', u'Â', u'Ê', u'â', u'ê', u'î', u'ò', u'ö', u'ï']
 
 DICT_FEATURES = {}
 
@@ -26,6 +28,11 @@ def get_consoante_relativa(texto):
     num = len(list(filter(lambda char: char in CONSOANTES, texto)))
     return num / len(texto)
 
+@feature
+def get_acento_relativo(texto):
+    num = len(list(filter(lambda char: char in ACENTOS, texto)))
+    return num / len(texto)
+
 
 def extrai_features_df(df: pd.DataFrame) -> pd.DataFrame:
     
@@ -42,14 +49,31 @@ def extrai_features_df(df: pd.DataFrame) -> pd.DataFrame:
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_validate
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.model_selection import train_test_split
 
 if __name__ == "__main__":
+    LABELS = ['Francês','Inglês','Italiano']
+    INPUT = [func_name[4:] for func_name, _ in DICT_FEATURES.items()]
+
     # obtem DF
     df = pd.read_csv('/'.join([BASE_DIR, 'dataset', 'language', 'csv', 'language_dataset.csv']))
+    
 
     # Extrai features
     df_features = extrai_features_df(df)
+    x_train, x_test, y_train, y_test = train_test_split(df_features[INPUT], df_features.y, test_size=.33)
 
     clf = RandomForestClassifier()
 
-    cv = cross_validate(clf, df_features[['vogal_relativa', 'consoante_relativa']], df_features.y, cv=3)
+    clf.fit(x_train, y_train)
+
+    y_predict = clf.predict(x_test)
+
+    print(classification_report(y_test, y_predict, target_names=LABELS))
+    print(confusion_matrix(y_test, y_predict))
+    print('A acurácia do modelo é: ', accuracy_score(y_test, y_predict))
+
+    joblib.dump(clf, 'classificador.pkl')
+
+    # cv = cross_validate(clf, df_features[INPUT], df_features.y, cv=3)
