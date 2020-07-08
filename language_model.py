@@ -1,7 +1,8 @@
-import pandas as pd
 import joblib
-from nix.settings import BASE_DIR
+import pandas as pd
+import re
 
+from nix.settings import BASE_DIR
 
 VOGAIS = [u'ë', u'û', u'À', u'È', u'O', u'Ô', u'à', u'è', u'ì', u'o', u'ô', u'ü', u'É', u'é', u'ù', u'A', u'Â', u'E', u'Æ', u'I', u'Ê', u'U', u'Y', u'a', u'â', u'e', u'æ', u'i', u'ê', u'î', u'ò', u'u', u'ö', u'y', u'ï']
 CONSOANTES = [u'D', u'p', u't', u'x', u'Ç', u'H', u'L', u'P', u'T', u'X', u'd', u'ç', u'h', u'l', u'C', u'G', u'K', u'S', u'W', u'c', u'g', u'k', u's', u'w', u'B', u'F', u'J', u'N', u'R', u'V', u'Z', u'b', u'f', u'j', u'n', u'ñ', u'r', u'v', u'z', u'M', u'Q', u'm', u'q']
@@ -35,10 +36,32 @@ def get_acento_relativo(texto):
 
 @feature
 def get_palavras_final_vogal(texto):
-    texto = list(filter(lambda x: x != '', texto.split(' ')))
-    num = len(list(filter(lambda palavra: palavra[-1] in VOGAIS, texto)))
-    return num / len(texto)
+    list_caracteres_ignorados = [',', '.', '"']
+    list_palavras = extrai_lista_palavras(texto, list_caracteres_ignorados)
+        
+    num = len(list(filter(lambda palavra: palavra[-1] in VOGAIS, list_palavras)))
+    return num / len(list_palavras)
 
+@feature
+def get_ocorrencia_letras_no_texto(texto):
+    # expressao regular para o 'OR' das letras
+    letras_buscadas = '[wky]'
+    return len(re.findall(letras_buscadas, texto)) / len(texto)
+
+@feature
+def get_palavras_com_apostrofe(texto):
+    list_palavras = extrai_lista_palavras(texto)
+
+    num = len(list(filter(lambda palavra: "'" in palavra, list_palavras)))
+    return num / len(list_palavras)
+
+
+def extrai_lista_palavras(texto: str, list_caracteres_ignorados: list = []) -> list:
+    
+    for char in list_caracteres_ignorados:
+        texto = texto.replace(char, '')
+    
+    return list(filter(lambda x: x != '', texto.split(' ')))
 
 def extrai_features_df(df: pd.DataFrame) -> pd.DataFrame:
     
@@ -54,9 +77,9 @@ def extrai_features_df(df: pd.DataFrame) -> pd.DataFrame:
     
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_validate
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import (accuracy_score, classification_report,
+                             confusion_matrix)
+from sklearn.model_selection import cross_validate, train_test_split
 
 if __name__ == "__main__":
     LABELS = ['Francês', 'Inglês', 'Italiano']
